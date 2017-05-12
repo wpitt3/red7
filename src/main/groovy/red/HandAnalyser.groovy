@@ -106,6 +106,10 @@ class HandAnalyser {
     }
 
     static Map getHandsAsMap(List hands) {
-        return hands.withIndex().collectEntries { hand, i -> [(i):hand] }
+        Map result = [:]
+        hands.eachWithIndex{ hand, int i ->
+            result[i] = hand
+        }
+        return result
     }
 }

@@ -33,11 +33,15 @@ class Card implements Comparable {
 
     @Override
     String toString() {
-        return colour.toString() + "" + number
+        return colour.toString() + "" + (number)
+    }
+
+    Card clone() {
+        return new Card(this.colour, this.number)
     }
 
     String name() {
-        return colour.name + " " + number
+        return colour.name + " " + (number)
     }
 
     int compareTo(Object o) {
