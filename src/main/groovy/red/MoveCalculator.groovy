@@ -11,27 +11,11 @@ import red.domain.Hand
 class MoveCalculator {
 
     Map calculateMoves(List<Hand> hands, Integer currentIndex, Colour currentRule = Colour.R) {
-        Hand currentHand = hands[currentIndex]
-
-        List<Card> cardsWhichChangeRule = currentHand.inHand.findAll{ Card card -> card.colour != currentRule }
+        List<Card> cardsWhichChangeRule = hands[currentIndex].inHand.findAll{ Card card -> card.colour != currentRule }
 
         List<Card> cardsWhichCanWinOnOwn = findCardsWhichWinOnOwn(hands, currentIndex, currentRule)
-
-        List<Card> ruleChangeWins = cardsWhichChangeRule.findAll { Card ruleChangeCard ->
-            List newPalettes = hands.palette.clone()
-            HandAnalyser.compareHands(newPalettes, ruleChangeCard.colour) == currentIndex
-        }
-
-        List<Map> combos = cardsWhichChangeRule.collect{ Card ruleChangeCard ->
-            List successes = currentHand.inHand.findAll{ it != ruleChangeCard}.findAll{ Card card ->
-                List newPalette = currentHand.palette.clone() + card
-                List newPalettes = hands.palette.clone()
-                newPalettes[currentIndex] = newPalette
-                HandAnalyser.compareHands(newPalettes, ruleChangeCard.colour) == currentIndex
-            }
-            return [ruleCard: ruleChangeCard.clone(), otherCard: successes]
-        }.findAll{it.otherCard != []}
-
+        List<Card> ruleChangeWins = findRuleChangesThatWin(hands, cardsWhichChangeRule, currentIndex)
+        List<Map> combos = findCombinationsWhichWin(hands, cardsWhichChangeRule, currentIndex)
         return [addToPalette: cardsWhichCanWinOnOwn, ruleChange: ruleChangeWins, twoCard:combos]
     }
 
@@ -44,5 +28,23 @@ class MoveCalculator {
         }
     }
 
-//    private List<Card>
+    private List<Card> findRuleChangesThatWin(List hands, List cardsWhichChangeRule, Integer currentIndex) {
+        return cardsWhichChangeRule.findAll { Card ruleChangeCard ->
+            List newPalettes = hands.palette.clone()
+            HandAnalyser.compareHands(newPalettes, ruleChangeCard.colour) == currentIndex
+        }
+    }
+
+    private List<Map> findCombinationsWhichWin(List hands, List cardsWhichChangeRule, Integer currentIndex) {
+        Hand currentHand = hands[currentIndex]
+        return cardsWhichChangeRule.collect{ Card ruleChangeCard ->
+            List successes = currentHand.inHand.findAll{ it != ruleChangeCard}.findAll{ Card card ->
+                List newPalette = currentHand.palette.clone() + card
+                List newPalettes = hands.palette.clone()
+                newPalettes[currentIndex] = newPalette
+                HandAnalyser.compareHands(newPalettes, ruleChangeCard.colour) == currentIndex
+            }
+            return [ruleCard: ruleChangeCard.clone(), otherCard: successes]
+        }.findAll{it.otherCard != []}
+    }
 }

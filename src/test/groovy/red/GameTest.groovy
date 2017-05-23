@@ -10,39 +10,41 @@ import spock.lang.Specification
 class GameTest extends Specification {
     Game game
     void setup() {
-        game = new Game()
+        game = new Game(5)
     }
 
-    void "createDeck" () {
+    void "next player is one after" () {
         when:
-            List deck = game.createDeck()
+            Integer index = game.nextPlayer(0)
         then:
-            deck.size() == 49
-            (0..6).every{ index -> deck.count{ card -> card.number == index } == 7}
-            Colour.values().every{ colour -> deck.count{ card -> card.colour == colour } == 7}
+            index == 1
     }
 
-    void "shuffleDeck" () {
+    void "first player if next if current was last" () {
         when:
-        List deck = game.createDeck()
-        List newDeck = game.shuffleDeck(deck)
-
+        Integer index = game.nextPlayer(4)
         then:
-        newDeck.size() == 49
-        deck == game.createDeck()
-        (0..6).every{ index -> newDeck.count{ card -> card.number == index } == 7}
-        Colour.values().every{ colour -> newDeck.count{ card -> card.colour == colour } == 7}
-        deck != newDeck // slight chance of failure
-        deck.sort() == newDeck.sort()
+        index == 0
     }
 
-    void "startGame"() {
+    void "ignore players that are out" () {
         when:
-        List<Hand> hands = game.createHands(2)
+        game.playerStates[1] = false
+        Integer index = game.nextPlayer(0)
         then:
-        hands.every{ Hand hand -> hand.palette.size() == 1 }
-        hands.every{ Hand hand -> hand.inHand.size() == 7 }
-
-
+        index == 2
     }
+
+    void "stop if all players are out" () {
+        when:
+        game.playerStates[1] = false
+        game.playerStates[2] = false
+        game.playerStates[3] = false
+        game.playerStates[4] = false
+
+        Integer index = game.nextPlayer(0)
+        then:
+        index == -1
+    }
+
 }
